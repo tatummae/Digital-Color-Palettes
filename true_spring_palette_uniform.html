@@ -1,0 +1,283 @@
+<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>True Spring Digital Palette</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .header { text-align: center; margin-bottom: 30px; color: #333; }
+        .header h1 { font-size: 24px; margin-bottom: 10px; font-weight: 600; }
+        .header p { color: #666; font-size: 16px; }
+        
+.palette-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 12px;
+    max-width: 600px;
+    margin: 0 auto;
+    justify-items: center;
+}
+
+.color-item {
+    width: 100%;
+    aspect-ratio: 1 / 1; /* keeps perfect squares */
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.color-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+
+.color-item:active { transform: scale(0.95); }
+
+@media (max-width: 480px) {
+    .palette-grid {
+        gap: 8px;
+        padding: 0 10px;
+    }
+    .color-item {
+        border-radius: 8px;
+    }
+}
+
+
+        .fullscreen-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; align-items: center; justify-content: center; z-index: 1000; animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .fullscreen-content { text-align: center; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .fullscreen-name {
+            font-size: 32px; font-weight: 700; margin-bottom: 15px;
+            background: rgba(0,0,0,0.3); padding: 15px 25px; border-radius: 12px; display: inline-block;
+        }
+        .fullscreen-instructions { font-size: 16px; opacity: 0.9; margin-bottom: 20px; color: black; }
+        .navigation-buttons { display: flex; gap: 20px; justify-content: center; margin-top: 30px; }
+        .nav-btn {
+            background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.3);
+            color: black; padding: 12px 20px; border-radius: 25px; font-size: 16px; cursor: pointer;
+            transition: all 0.3s ease; backdrop-filter: blur(10px);
+        }
+        .nav-btn:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
+        .nav-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .close-btn {
+            position: absolute; top: 30px; right: 30px; background: rgba(255,255,255,0.5);
+            border: none; color: black; font-size: 24px; width: 30px; height: 30px; border-radius: 50%;
+            cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(10px);
+        }
+        .close-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.1); }
+        .instructions { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+        @media (max-width: 480px) {
+            .palette-grid { gap: 8px; padding: 0 10px; }
+            .color-item { width: 70px; height: 70px; }
+            .fullscreen-name { font-size: 28px; padding: 12px 20px; }
+        }
+    
+/* --- Custom fullscreen layout adjustments --- */
+.fullscreen-name {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    font-size: 18px;
+    font-weight: 600;
+    background: rgba(0,0,0,0.4);
+    padding: 8px 14px;
+    border-radius: 8px;
+}
+
+.navigation-buttons {
+    display: none !important;
+	position: absolute;
+    bottom: 35px;
+    left: 20%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    margin-top: 0;
+}
+
+.nav-btn {
+    padding: 8px 14px;
+    font-size: 14px;
+    border-radius: 10px;
+}
+
+</style>
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="icon.png">
+
+
+
+    <div class="header">
+        <h1>True Spring Digital Palette</h1>
+        <p>Tap any color to view it fullscreen</p>
+    </div>
+
+    <div class="palette-grid" id="paletteGrid"></div>
+
+   
+
+    <div class="fullscreen-overlay" id="fullscreenOverlay">
+        <button class="close-btn" onclick="closeFullscreen()">×</button>
+        <div class="fullscreen-content">
+    <div class="fullscreen-name" id="fullscreenName">Color Name</div>
+    <div class="navigation-buttons">
+        <button class="nav-btn" id="prevBtn" onclick="showPreviousColor()">←</button>
+        <button class="nav-btn" id="nextBtn" onclick="showNextColor()">→</button>
+    </div>
+</div>
+    </div>
+
+<script>
+const colors = [
+    { name: "Cocoa Bean", hex: "#803C25" },
+    { name: "Cinnamon Bark", hex: "#A0542D" },
+    { name: "Chilli Ember", hex: "#903425" },
+    { name: "Terracotta Sun", hex: "#B84C2D" },
+    { name: "Golden Honey", hex: "#E0A44D" },
+    { name: "Baked Almond", hex: "#D5A268" },
+    { name: "Warm Sandstone", hex: "#DDB678" },
+    { name: "Apricot Cream", hex: "#F8BC5D" },
+    { name: "Peach Creamsicle", hex: "#FFC68F" },
+    { name: "Petal Peach", hex: "#F1AD7E" },
+    { name: "Melon Sorbet", hex: "#FFBC8C" },
+    { name: "Sunny Canteloupe", hex: "#FFA94D" },
+    { name: "Golden Tangerine", hex: "#EB8D54" },
+    { name: "Apricot Fizz", hex: "#FFD1A6" },
+    { name: "Buttermilk Glow", hex: "#FFE0B2" },
+    { name: "Banana Souffle", hex: "#FFF4C5" },
+    { name: "Golden Drop", hex: "#FFF49D" },
+    { name: "Zesty Pear", hex: "#FFD84B" },
+    { name: "Golden Buttercup", hex: "#FFDC65" },
+    { name: "Spring Daffodil", hex: "#F8EC5D" },
+    { name: "Zesty Marigold", hex: "#FFEF00" },
+    { name: "Leaf Bud", hex: "#D8DC4D" },
+    { name: "Fresh Thyme", hex: "#B0CC45" },
+    { name: "Sweet Pea", hex: "#A0CC65" },
+    { name: "Crisp Lettuce", hex: "#A8E05F" },
+    { name: "Green Apple Pop", hex: "#87C942" },
+    { name: "Tropical Fern", hex: "#60B455" },
+    { name: "Olive Leaf", hex: "#7BB15D" },
+    { name: "Basil Glow", hex: "#66A83D" },
+    { name: "Garden Pop", hex: "#4C9A2A" },
+    { name: "Minted Moss", hex: "#68BC75" },
+    { name: "Emerald Zest", hex: "#00A86B" },
+    { name: "Green Lagoon", hex: "#40B485" },
+    { name: "Teal Mist", hex: "#38B4AD" },
+    { name: "Seafoam Pop", hex: "#62C9C2" },
+    { name: "Tropical Splash", hex: "#08E8DE" },
+    { name: "Blue Guava", hex: "#009DC4" },
+    { name: "Breezy Bay", hex: "#48BCE5" },
+    { name: "Electric Pool", hex: "#00CCFF" },
+    { name: "Blue Breeze", hex: "#00AEEF" },
+    { name: "Cool Surf", hex: "#73BFD6" },
+    { name: "Aqua Drift", hex: "#72C7D3" },
+    { name: "Sky Pebble", hex: "#8CD0E3" },
+    { name: "Icy Horizon", hex: "#B7EAF5" },
+    { name: "Bayside Blue", hex: "#4894C5" },
+    { name: "Cornflower Surf", hex: "#4D7FB5" },
+    { name: "Bluebell Tint", hex: "#5B9BD5" },
+    { name: "Sapphire Coast", hex: "#284C75" },
+    { name: "Periwinkle Pop", hex: "#6874AD" },
+    { name: "Lavender Storm", hex: "#68649D" },
+    { name: "Violet Glint", hex: "#88649D" },
+    { name: "Orchid Pop", hex: "#A25BA2" },
+    { name: "Petal Frost", hex: "#E8A9E1" },
+    { name: "Poppy Pink Punch", hex: "#FF4F79" },
+    { name: "Raspberry Sorbet", hex: "#FF5A76" },
+    { name: "Bubblegum Bloom", hex: "#FF6F91" },
+    { name: "Blossom Taffy", hex: "#FF6F61" },
+    { name: "Orange Sherbert", hex: "#F88C5D" },
+    { name: "Coral Mousse", hex: "#F0947D" },
+    { name: "Terra Peach", hex: "#E74944" },
+    { name: "Rosy Guava", hex: "#E86465" },
+    { name: "Tropical Coral", hex: "#FF5E57" },
+    { name: "Hot Papaya", hex: "#FF6B5E" },
+    { name: "Watermelon Pop", hex: "#E03C45" },
+    { name: "Cherry Heat", hex: "#DC3023" },
+    { name: "Firelight Red", hex: "#F42C04" }
+];
+
+let currentColorIndex = 0;
+
+function generatePalette() {
+    const grid = document.getElementById("paletteGrid");
+    colors.forEach((color, index) => {
+        const colorItem = document.createElement("div");
+        colorItem.className = "color-item";
+        colorItem.style.backgroundColor = color.hex;
+        colorItem.style.border = "1px solid rgba(0,0,0,0.1)";
+        colorItem.addEventListener("click", () => showFullscreen(index));
+        grid.appendChild(colorItem);
+    });
+}
+
+function showFullscreen(index) {
+    currentColorIndex = index;
+    const color = colors[index];
+    const overlay = document.getElementById("fullscreenOverlay");
+    overlay.style.backgroundColor = color.hex;
+    document.getElementById("fullscreenName").textContent = color.name;
+    document.getElementById("prevBtn").disabled = index === 0;
+    document.getElementById("nextBtn").disabled = index === colors.length - 1;
+    overlay.style.display = "flex";
+    document.body.style.overflow = "hidden";
+}
+
+function closeFullscreen() {
+    document.getElementById("fullscreenOverlay").style.display = "none";
+    document.body.style.overflow = "auto";
+}
+
+function showPreviousColor() {
+    if (currentColorIndex > 0) showFullscreen(currentColorIndex - 1);
+}
+
+function showNextColor() {
+    if (currentColorIndex < colors.length - 1) showFullscreen(currentColorIndex + 1);
+}
+
+document.addEventListener("keydown", (e) => {
+    if (document.getElementById("fullscreenOverlay").style.display === "flex") {
+        if (e.key === "Escape") closeFullscreen();
+        if (e.key === "ArrowLeft") showPreviousColor();
+        if (e.key === "ArrowRight") showNextColor();
+    }
+});
+
+let touchStartX = 0;
+document.addEventListener("touchstart", (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+});
+document.addEventListener("touchend", (e) => {
+    const touchEndX = e.changedTouches[0].screenX;
+    const delta = touchEndX - touchStartX;
+    if (document.getElementById("fullscreenOverlay").style.display === "flex") {
+        if (Math.abs(delta) > 50) {
+            if (delta > 0) showPreviousColor();
+            else showNextColor();
+        }
+    }
+});
+
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('Service Worker Registered'));
+}
+
+generatePalette();
+</script>
